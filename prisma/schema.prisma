@@ -1,0 +1,99 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+model User {
+  id         String       @id @default(uuid())
+  name       String
+  email      String
+  password   String
+  role       Role         @default(USER)
+  sex        String? // Optional, e.g., "Male", "Female", etc.
+  state      String? // Optional, for user's state
+  address    String? // Optional, for user's address
+  dob        DateTime? // Optional, date of birth
+  phone      String? // Optional, phone number
+  nickname   String? // Optional, user's nickname
+  picture    String? // Optional, URL or path to the user's picture
+  positions  String?
+  bio        String?
+  attendance Attendance[]
+  stats      PlayerStats?
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  @@map("users")
+}
+
+model Invitation {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  token     String   @unique
+  expiresAt DateTime
+  accepted  Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Attendance {
+  id        String   @id @default(uuid())
+  date      DateTime
+  present   Boolean
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Fixture {
+  id          String        @id @default(uuid())
+  opponent    String
+  date        DateTime
+  venue       String
+  isHome      Boolean
+  result      String?
+  score       String?
+  description String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  PlayerStats PlayerStats[]
+}
+
+model PlayerStats {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  fixtureId   String
+  fixture     Fixture  @relation(fields: [fixtureId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  gamesPlayed Int      @default(0)
+  goals       Int      @default(0)
+  assists     Int      @default(0)
+  cleanSheets Int      @default(0)
+  yellowCards Int      @default(0)
+  redCards    Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Image {
+  id        String   @id @default(uuid())
+  url       String
+  caption   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
